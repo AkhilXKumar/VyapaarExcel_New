@@ -19,7 +19,7 @@ export const fetchTemplates = async (): Promise<Template[]> => {
     }
 
     // Map Supabase snake_case columns to our TypeScript Template interface
-    // Expected DB columns: id, title, category, price, description, features (json/array), color, spreadsheet_id, sheet_range
+    // Expected DB columns: id, title, category, price, description, features (json/array), color, spreadsheet_id, sheet_range, sample_table_name
     return data.map((item: any) => ({
       id: item.id.toString(),
       title: item.title,
@@ -29,7 +29,8 @@ export const fetchTemplates = async (): Promise<Template[]> => {
       features: item.features || [],
       color: item.color || 'bg-slate-100 text-slate-700',
       spreadsheetId: item.spreadsheet_id, // Map snake_case from DB
-      sheetRange: item.sheet_range        // Map snake_case from DB
+      sheetRange: item.sheet_range,        // Map snake_case from DB
+      sampleTableName: item.sample_table_name // Map snake_case from DB
     }));
   } catch (err) {
     console.error("Template service error:", err);

@@ -43,6 +43,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPreview }) => {
                <LiveSheetPreview 
                   spreadsheetId={template.spreadsheetId} 
                   range={template.sheetRange} 
+                  sampleTableName={template.sampleTableName}
                   templateName={template.title}
                 />
            </div>
@@ -64,7 +65,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPreview }) => {
             {showPreview ? (
                 <>Close Preview <ChevronUp className="w-4 h-4" /></>
             ) : (
-                <>Live Preview <ChevronDown className="w-4 h-4" /></>
+                <>Live Sample Data <ChevronDown className="w-4 h-4" /></>
             )}
           </button>
         </div>

@@ -8,6 +8,7 @@ export interface Template {
   color: string;
   spreadsheetId?: string; // Google Sheet ID
   sheetRange?: string;    // e.g., 'Sheet1!A1:E10'
+  sampleTableName?: string; // Supabase Table Name for preview data
 }
 
 export type ViewState = 'home' | 'templates' | 'blueprint' | 'pricing';

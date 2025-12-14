@@ -14,7 +14,8 @@ export const TEMPLATES: Template[] = [
     features: ['Daily/Monthly Views', 'Payment Mode Split', 'Profit & Margin Calc', 'Branch Tracking'],
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     spreadsheetId: DEMO_SPREADSHEET_ID,
-    sheetRange: 'Class Data!A1:F15'
+    sheetRange: 'Class Data!A1:F15',
+    sampleTableName: 'preview_sales'
   },
   {
     id: '2',
@@ -25,7 +26,8 @@ export const TEMPLATES: Template[] = [
     features: ['GSTIN Validation Logic', 'Vendor Management', 'Tax Split Auto-calc', 'Monthly Summary'],
     color: 'bg-green-100 text-green-700 border-green-200',
     spreadsheetId: DEMO_SPREADSHEET_ID,
-    sheetRange: 'Class Data!A1:F15' // Using same demo sheet for now
+    sheetRange: 'Class Data!A1:F15',
+    sampleTableName: 'preview_expenses'
   },
   {
     id: '3',
@@ -36,7 +38,8 @@ export const TEMPLATES: Template[] = [
     features: ['Opening/Closing Stock', 'Low-Stock Alerts', 'Dead Stock Analysis', 'Purchase Tracking'],
     color: 'bg-orange-100 text-orange-700 border-orange-200',
     spreadsheetId: DEMO_SPREADSHEET_ID,
-    sheetRange: 'Class Data!A1:F15'
+    sheetRange: 'Class Data!A1:F15',
+    sampleTableName: 'preview_inventory'
   },
   {
     id: '4',
@@ -47,7 +50,8 @@ export const TEMPLATES: Template[] = [
     features: ['Daily Attendance Grid', 'Leave Management', 'Late Mark Penalties', 'Salary Slip Gen'],
     color: 'bg-purple-100 text-purple-700 border-purple-200',
     spreadsheetId: DEMO_SPREADSHEET_ID,
-    sheetRange: 'Class Data!A1:F15'
+    sheetRange: 'Class Data!A1:F15',
+    sampleTableName: 'preview_payroll'
   }
 ];
 

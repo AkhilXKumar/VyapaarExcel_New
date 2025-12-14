@@ -1,23 +1,26 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { fetchSheetData } from '../services/sheets';
+import { fetchSampleData } from '../services/sampleData';
 import { SheetData } from '../types';
-import { Loader2, RefreshCw, AlertCircle, FileSpreadsheet, ExternalLink, BarChart3, Table as TableIcon } from 'lucide-react';
+import { Loader2, RefreshCw, AlertCircle, FileSpreadsheet, ExternalLink, BarChart3, Table as TableIcon, Database } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface LiveSheetPreviewProps {
   spreadsheetId?: string;
   range?: string;
+  sampleTableName?: string;
   templateName: string;
 }
 
-const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, range, templateName }) => {
+const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, range, sampleTableName, templateName }) => {
   const [data, setData] = useState<SheetData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'chart'>('table');
+  const [sourceType, setSourceType] = useState<'google' | 'supabase'>('google');
 
   const loadData = async () => {
-    if (!spreadsheetId || !range) {
+    if (!spreadsheetId && !sampleTableName) {
       setError("Configuration missing for this template.");
       return;
     }
@@ -25,15 +28,41 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
     setLoading(true);
     setError(null);
     try {
-      const sheetData = await fetchSheetData(spreadsheetId, range);
+      let sheetData: SheetData;
+      
+      // OPTION 1: Prioritize Supabase for Sample Data (Better for Demo consistency)
+      if (sampleTableName) {
+          try {
+              sheetData = await fetchSampleData(sampleTableName);
+              setSourceType('supabase');
+              if (sheetData.rows.length === 0) throw new Error("Table empty");
+          } catch (e) {
+              console.warn("Supabase fetch failed, falling back to Sheets if available", e);
+              // Fallback to sheets if supabase fails
+              if (spreadsheetId && range) {
+                  sheetData = await fetchSheetData(spreadsheetId, range);
+                  setSourceType('google');
+              } else {
+                  throw e;
+              }
+          }
+      } 
+      // OPTION 2: Use Google Sheets API directly
+      else if (spreadsheetId && range) {
+          sheetData = await fetchSheetData(spreadsheetId, range);
+          setSourceType('google');
+      } else {
+          throw new Error("No data source configured");
+      }
+      
       setData(sheetData);
       
       // Auto-switch to chart if data looks very numeric and clean
       if (sheetData.rows.length > 0 && sheetData.headers.length > 1) {
-         // simple heuristic check
+         // simple heuristic check: Check if 2nd column is numeric
          const secondCol = sheetData.rows[0][1];
          if (secondCol && !isNaN(Number(secondCol.replace(/[^0-9.-]+/g,"")))) {
-             // setViewMode('chart'); // Optional: Auto-open chart
+             // setViewMode('chart'); 
          }
       }
     } catch (err: any) {
@@ -48,21 +77,18 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
     // Auto-refresh every 15 seconds as per requirements
     const interval = setInterval(loadData, 15000);
     return () => clearInterval(interval);
-  }, [spreadsheetId, range]);
+  }, [spreadsheetId, range, sampleTableName]);
 
   // Transform sheet data for Recharts
   const chartData = useMemo(() => {
     if (!data || !data.rows || data.rows.length === 0) return [];
 
-    // Attempt to find a numeric column
     const headers = data.headers;
     const rows = data.rows;
     
-    // Assume 1st column is Label (X-axis)
-    // Find first column index that contains numbers
+    // Find numeric column
     let valueColIndex = -1;
     
-    // Check the first row of data to find a number
     if (rows[0]) {
       rows[0].forEach((cell, idx) => {
         if (idx === 0) return; // Skip label column
@@ -82,10 +108,10 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
         value: val,
         [headers[valueColIndex] || 'Value']: val
       };
-    }).slice(0, 10); // Limit to top 10 for chart clarity
+    }).slice(0, 10);
   }, [data]);
 
-  if (!spreadsheetId) return null;
+  if (!spreadsheetId && !sampleTableName) return null;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full max-h-[500px]">
@@ -99,7 +125,7 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               {templateName}
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-800 animate-pulse">
-                ● LIVE
+                ● SAMPLE PREVIEW
               </span>
             </h4>
           </div>
@@ -155,7 +181,7 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
                   <thead className="bg-slate-50 sticky top-0 z-10">
                     <tr>
                       {data.headers.map((header, idx) => (
-                        <th key={idx} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-200">
+                        <th key={idx} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-200 bg-slate-50">
                           {header}
                         </th>
                       ))}
@@ -165,7 +191,7 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
                     {data.rows.map((row, rowIdx) => (
                       <tr key={rowIdx} className="hover:bg-slate-50/80 transition-colors">
                         {row.map((cell, cellIdx) => (
-                          <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap text-sm text-slate-700">
+                          <td key={cellIdx} className="px-4 py-2.5 whitespace-nowrap text-sm text-slate-700 font-mono">
                             {cell}
                           </td>
                         ))}
@@ -194,7 +220,7 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
           </>
         ) : (
            <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-              Connecting to Google Sheets...
+              Connecting to {sourceType === 'supabase' ? 'Sample Database' : 'Google Sheets'}...
            </div>
         )}
       </div>
@@ -202,16 +228,19 @@ const LiveSheetPreview: React.FC<LiveSheetPreviewProps> = ({ spreadsheetId, rang
       {/* Footer / Badge */}
       <div className="bg-slate-50 border-t border-slate-200 px-3 py-2 flex justify-between items-center text-[10px] text-slate-500 shrink-0">
         <span className="flex items-center gap-1">
-           {data ? `${data.rows.length} rows loaded` : 'Waiting for data'}
+           {sourceType === 'supabase' ? <Database className="w-3 h-3 text-indigo-500" /> : <FileSpreadsheet className="w-3 h-3 text-green-600" />}
+           {sourceType === 'supabase' ? 'Source: Supabase DB' : 'Source: Google Sheets API'}
         </span>
-        <a 
-            href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1 hover:text-indigo-600 font-medium"
-        >
-            View Source <ExternalLink className="w-3 h-3" />
-        </a>
+        {spreadsheetId && sourceType === 'google' && (
+             <a 
+                href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 hover:text-indigo-600 font-medium"
+            >
+                View Source <ExternalLink className="w-3 h-3" />
+            </a>
+        )}
       </div>
     </div>
   );
