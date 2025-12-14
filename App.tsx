@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ViewState } from './types';
+import { ViewState, Template } from './types';
 import { TEMPLATES } from './constants';
+import { fetchTemplates, subscribeToTemplateUpdates } from './services/templateService';
 import TemplateCard from './components/TemplateCard';
 import BlueprintChat from './components/BlueprintChat';
 import DashboardDemo from './components/DashboardDemo';
@@ -26,26 +27,42 @@ const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // Template State
+  const [templates, setTemplates] = useState<Template[]>(TEMPLATES);
+
   // Auth State
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Load Templates & Auth
   useEffect(() => {
-    // Check active session
+    // 1. Initial Data Load
+    const loadTemplates = async () => {
+      const data = await fetchTemplates();
+      setTemplates(data);
+    };
+    loadTemplates();
+
+    // 2. Realtime Subscription for Metadata
+    const subscription = subscribeToTemplateUpdates(() => {
+      loadTemplates();
+    });
+
+    // 3. Auth Check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription: authListener } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      authListener.unsubscribe();
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -83,7 +100,6 @@ const App: React.FC = () => {
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => {
           setIsAuthModalOpen(false);
-          // Optional: redirect or show success message
         }}
       />
 
@@ -278,7 +294,7 @@ const App: React.FC = () => {
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {TEMPLATES.map(t => (
+              {templates.map(t => (
                 <TemplateCard key={t.id} template={t} onPreview={() => {}} />
               ))}
             </div>

@@ -1,5 +1,8 @@
 import { Template } from './types';
-import { IndianRupee, BarChart3, Calculator, Users, Truck } from 'lucide-react';
+
+// Using a public Google Sample Sheet (Class Data) for demonstration purposes if user doesn't have their own yet.
+// Replaced with placeholders for production.
+const DEMO_SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'; // Public "Class Data" sheet
 
 export const TEMPLATES: Template[] = [
   {
@@ -9,7 +12,9 @@ export const TEMPLATES: Template[] = [
     price: 299,
     description: 'Track daily cash, UPI, and card sales with region-wise breakdown and profit margins.',
     features: ['Daily/Monthly Views', 'Payment Mode Split', 'Profit & Margin Calc', 'Branch Tracking'],
-    color: 'bg-blue-100 text-blue-700 border-blue-200'
+    color: 'bg-blue-100 text-blue-700 border-blue-200',
+    spreadsheetId: DEMO_SPREADSHEET_ID,
+    sheetRange: 'Class Data!A1:F15'
   },
   {
     id: '2',
@@ -18,7 +23,9 @@ export const TEMPLATES: Template[] = [
     price: 299,
     description: 'Ensure compliance with auto-calculated CGST, SGST, IGST and GSTR-3B summary.',
     features: ['GSTIN Validation Logic', 'Vendor Management', 'Tax Split Auto-calc', 'Monthly Summary'],
-    color: 'bg-green-100 text-green-700 border-green-200'
+    color: 'bg-green-100 text-green-700 border-green-200',
+    spreadsheetId: DEMO_SPREADSHEET_ID,
+    sheetRange: 'Class Data!A1:F15' // Using same demo sheet for now
   },
   {
     id: '3',
@@ -27,7 +34,9 @@ export const TEMPLATES: Template[] = [
     price: 299,
     description: 'Prevent stock-outs and identify dead stock with automated low-stock alerts.',
     features: ['Opening/Closing Stock', 'Low-Stock Alerts', 'Dead Stock Analysis', 'Purchase Tracking'],
-    color: 'bg-orange-100 text-orange-700 border-orange-200'
+    color: 'bg-orange-100 text-orange-700 border-orange-200',
+    spreadsheetId: DEMO_SPREADSHEET_ID,
+    sheetRange: 'Class Data!A1:F15'
   },
   {
     id: '4',
@@ -36,7 +45,9 @@ export const TEMPLATES: Template[] = [
     price: 299,
     description: 'Manage staff attendance, late marks, leaves, and auto-calculate month-end salaries.',
     features: ['Daily Attendance Grid', 'Leave Management', 'Late Mark Penalties', 'Salary Slip Gen'],
-    color: 'bg-purple-100 text-purple-700 border-purple-200'
+    color: 'bg-purple-100 text-purple-700 border-purple-200',
+    spreadsheetId: DEMO_SPREADSHEET_ID,
+    sheetRange: 'Class Data!A1:F15'
   }
 ];
 
